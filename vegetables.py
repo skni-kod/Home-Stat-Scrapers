@@ -12,7 +12,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
 # Set up logging
-log_folder = "log/warzywa"
+log_folder = "logs/vegetables"
 os.makedirs(log_folder, exist_ok=True)
 log_filename = os.path.join(log_folder, f"scraping_log_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.txt")
 logging.basicConfig(filename=log_filename, level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -47,16 +47,16 @@ def scrape_page(page_url):
             EC.presence_of_element_located((By.CLASS_NAME, "product-grid__item"))
         )
     except TimeoutException:
-        logging.error(f"Czas oczekiwania na załadowanie strony {page_url} upłynął.")
+        logging.error(f"The waiting time for loading the page {page_url} has expired.")
         return False
 
     # Get the products on the page
     products = driver.find_elements(By.CLASS_NAME, "product-grid__item")
     if not products:
-        logging.warning(f"Brak produktów na stronie {page_url}. Kończenie scrapowania.")
+        logging.warning(f"No products found on the page {page_url}. Ending scraping..")
         return False
 
-    logging.info(f"Znaleziono {len(products)} produktów na stronie {page_url}.")
+    logging.info(f"Found {len(products)} products on the page {page_url}.")
 
     for product in products:
         try:
@@ -68,7 +68,7 @@ def scrape_page(page_url):
                                                      './/div[contains(@class, "packaging-details")]').text.strip() if product.find_element(
                 By.XPATH, './/div[contains(@class, "packaging-details")]') else "Brak masy"
 
-            logging.debug(f"Sprawdzam produkt: {name} - {packaging_details}")
+            logging.debug(f"Checking product: {name} - {packaging_details}")
 
             try:
                 # Checking for promotion
@@ -104,7 +104,7 @@ def scrape_page(page_url):
             })
 
         except Exception as e:
-            logging.error(f"Problem z pobraniem danych produktu: {e}")
+            logging.error(f"Problem with retrieving product data.: {e}")
 
     return True
 
@@ -124,7 +124,7 @@ while True:
 
     # Check if there is a "next" button for the next page
     if not has_next_page():
-        logging.info("Osiągnięto ostatnią stronę.")
+        logging.info("Last page reached.")
         break
 
     # Increase the page number
@@ -134,12 +134,12 @@ while True:
 driver.quit()
 
 # Create folder for results
-output_folder = "wyniki/warzywa"
+output_folder = "results/vegetables"
 os.makedirs(output_folder, exist_ok=True)
 
 # Create a unique filename for the CSV file
 current_timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-csv_filename = os.path.join(output_folder, f"warzywa_{current_timestamp}.csv")
+csv_filename = os.path.join(output_folder, f"vegetables_{current_timestamp}.csv")
 
 # Save to CSV file
 with open(csv_filename, mode="w", encoding="utf-8", newline="") as file:
@@ -147,4 +147,4 @@ with open(csv_filename, mode="w", encoding="utf-8", newline="") as file:
     writer.writeheader()
     writer.writerows(data_list)
 
-logging.info(f"Wyniki zapisano do pliku {csv_filename}")
+logging.info(f"Results saved in file: {csv_filename}")
